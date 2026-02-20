@@ -1,2 +1,13 @@
 # Project2CST438
-bleghhh
+## Setup Instructions
+
+### Frontend
+
+
+```bash
+cd frontend
+npm install
+npm run dev
+
+Frontend runs at:
+http://localhost:5173
