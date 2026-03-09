@@ -1,4 +1,5 @@
 import type { CalendarEvent, TodoItem } from "@/lib/calendar-store"
+import { supabase } from "@/lib/supabaseClient"
 
 // ─── Spring Boot API base URL ───────────────────────────────────
 // Point this at your running Spring Boot server.
@@ -11,9 +12,13 @@ async function request<T>(
   path: string,
   options?: RequestInit,
 ): Promise<T> {
+  const { data } = await supabase.auth.getSession()
+  const token = data.session?.access_token
+
   const res = await fetch(`${BASE_URL}${path}`, {
     headers: {
       "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options?.headers ?? {}),
     },
     ...options,
