@@ -17,7 +17,6 @@
     "jsx": "react-jsx",
 
     /* path aliases for TS */
-    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]

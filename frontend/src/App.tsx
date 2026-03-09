@@ -1,15 +1,11 @@
-import "./index.css"
-import { CalendarApp } from "./components/calendar-app";
-function App() {
-  return <CalendarApp />
-}
-
-export default App
 import { Navigate, Route, Routes } from "react-router-dom";
-import "./App.css";
 
 import Login from "./pages/login";
 import Signup from "./pages/signup";
+import { CalendarApp } from "./components/calendar-app";
+
+import "./index.css";
+import "./App.css";
 
 export default function App() {
   return (
@@ -17,6 +13,10 @@ export default function App() {
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+
+      {/* your calendar page */}
+      <Route path="/calendar" element={<CalendarApp />} />
+
       <Route path="*" element={<div style={{ padding: 24 }}>Not found</div>} />
     </Routes>
   );
