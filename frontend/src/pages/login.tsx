@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { supabase } from "../lib/supabaseClient";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -13,8 +14,18 @@ export default function Login() {
     if (!email.trim()) return setError("Email is required.");
     if (password.length < 6) return setError("Password must be at least 6 characters.");
 
-    // TODO: call your login API
     console.log("LOGIN:", { email, password });
+  }
+
+  async function signInWithGoogle() {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    if (error) setError(error.message);
   }
 
   return (
@@ -24,6 +35,10 @@ export default function Login() {
         <p className="auth-subtitle">Log in to continue.</p>
 
         <form className="auth-form" onSubmit={handleSubmit}>
+          <button className="auth-button" type="button" onClick={signInWithGoogle}>
+            Continue with Google
+          </button>
+
           <label className="auth-label">
             Email
             <input
