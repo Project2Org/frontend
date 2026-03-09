@@ -4,7 +4,6 @@ import Signup from "./pages/signup";
 import AuthCallback from "./pages/auth-callback";
 import { CalendarApp } from "./components/calendar-app";
 import ProtectedRoute from "./auth/ProtectedRoute";
-import AuthRedirect from "./auth/AuthRedirect";
 import HomeRedirect from "./pages/home-redirect";
 
 export default function App() {
