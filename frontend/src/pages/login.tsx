@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth } from "../auth/AuthProvider";
@@ -28,17 +28,20 @@ export default function Login() {
 
     if (error) {
       setError(error.message);
-    } else {
-      navigate("/calendar", { replace: true });
+      return;
     }
+
+    navigate("/calendar", { replace: true });
   }
 
   async function signInWithGoogle() {
+    setError(null);
+
+    const redirectTo = `${window.location.origin}/auth/callback`;
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
+      options: { redirectTo },
     });
 
     if (error) setError(error.message);
@@ -56,17 +59,11 @@ export default function Login() {
 
         <form className="auth-form" onSubmit={handleSubmit}>
           {/* Google Login */}
-          <button
-            type="button"
-            className="auth-button"
-            onClick={signInWithGoogle}
-          >
+          <button type="button" className="auth-button" onClick={signInWithGoogle}>
             Continue with Google
           </button>
 
-          <div style={{ margin: "1rem 0", textAlign: "center" }}>
-            or
-          </div>
+          <div style={{ margin: "1rem 0", textAlign: "center" }}>or</div>
 
           {/* Email login */}
           <label className="auth-label">
