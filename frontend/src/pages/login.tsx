@@ -1,20 +1,54 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "../lib/supabaseClient";
+import { useAuth } from "../auth/AuthProvider";
 
 export default function Login() {
+  const navigate = useNavigate();
+  const { session, loading } = useAuth();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit(e: React.FormEvent) {
+  useEffect(() => {
+    if (!loading && session) {
+      navigate("/calendar", { replace: true });
+    }
+  }, [loading, session, navigate]);
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
 
-    if (!email.trim()) return setError("Email is required.");
-    if (password.length < 6) return setError("Password must be at least 6 characters.");
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-    // TODO: call your login API
-    console.log("LOGIN:", { email, password });
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    navigate("/calendar", { replace: true });
+  }
+
+  async function signInWithGoogle() {
+    setError(null);
+
+    const redirectTo = `${window.location.origin}/auth/callback`;
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo },
+    });
+
+    if (error) setError(error.message);
+  }
+
+  if (loading) {
+    return <div style={{ padding: 24 }}>Loading...</div>;
   }
 
   return (
@@ -24,6 +58,14 @@ export default function Login() {
         <p className="auth-subtitle">Log in to continue.</p>
 
         <form className="auth-form" onSubmit={handleSubmit}>
+          {/* Google Login */}
+          <button type="button" className="auth-button" onClick={signInWithGoogle}>
+            Continue with Google
+          </button>
+
+          <div style={{ margin: "1rem 0", textAlign: "center" }}>or</div>
+
+          {/* Email login */}
           <label className="auth-label">
             Email
             <input
@@ -33,6 +75,7 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
+              required
             />
           </label>
 
@@ -45,6 +88,7 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
+              required
             />
           </label>
 
