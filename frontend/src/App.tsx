@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import Login from "./pages/login";
 import Signup from "./pages/signup";
 import AuthCallback from "./pages/auth-callback";
+import Admin from "./pages/admin";
 import { CalendarApp } from "./components/calendar-app";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import HomeRedirect from "./pages/home-redirect";
@@ -19,6 +20,7 @@ export default function App() {
       {/* Protected */}
       <Route element={<ProtectedRoute />}>
         <Route path="/calendar" element={<CalendarApp />} />
+        <Route path="/admin" element={<Admin />} />
       </Route>
 
       <Route path="*" element={<div style={{ padding: 24 }}>Not found</div>} />

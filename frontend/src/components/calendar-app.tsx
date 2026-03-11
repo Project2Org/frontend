@@ -1,5 +1,6 @@
-import { useState, useCallback } from "react"
-import { CalendarDays, ListTodo, Clock, PanelRightOpen, PanelRightClose } from "lucide-react"
+import { useState, useCallback, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
+import { CalendarDays, ListTodo, Clock, PanelRightOpen, PanelRightClose, Settings } from "lucide-react"
 import { format } from "date-fns"
 import { CalendarPanel } from "@/components/calendar-panel"
 import { TodoPanel } from "@/components/todo-panel"
@@ -11,21 +12,35 @@ import { Button } from "@/components/ui/button"
 type SidebarTab = "events" | "todos"  
 
 export function CalendarApp() {
+  const navigate = useNavigate()
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [displayMonth, setDisplayMonth] = useState<Date>(new Date())
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>("events")
+  const [weekStart, setWeekStart] = useState<"monday" | "sunday">(
+    (localStorage.getItem("weekStart") as "monday" | "sunday") || "sunday"
+  )
 
   const {
     events,
     todos,
-    apiAvailable,
     addEvent,
     deleteEvent,
     addTodo,
     toggleTodo,
     deleteTodo,
   } = useCalendarData()
+
+  // Listen for week start changes from admin page
+  useEffect(() => {
+    const handleWeekStartChange = (e: Event) => {
+      const event = e as CustomEvent<"monday" | "sunday">
+      setWeekStart(event.detail)
+    }
+
+    window.addEventListener("weekStartChanged", handleWeekStartChange)
+    return () => window.removeEventListener("weekStartChanged", handleWeekStartChange)
+  }, [])
 
   const dateKey = formatDateKey(selectedDate)
   const dayEvents = events.filter((e) => e.date === dateKey)
@@ -49,7 +64,7 @@ export function CalendarApp() {
           <div className="flex items-center justify-center rounded-md bg-brand p-1">
             <CalendarDays className="size-3.5 text-brand-foreground" />
           </div>
-          <h1 className="text-sm font-semibold tracking-tight text-foreground">Cal</h1>
+          <h1 className="text-sm font-semibold tracking-tight text-foreground">Project 2 Calender App</h1>
         </div>
 
         {/* Center: selected date info */}
@@ -59,18 +74,6 @@ export function CalendarApp() {
 
         {/* Right: sidebar tabs + toggle */}
         <div className="flex items-center gap-1">
-          {/* API indicator */}
-          {apiAvailable !== null && (
-            <span className="mr-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-              <span
-                className={`size-1.5 rounded-full ${
-                  apiAvailable ? "bg-emerald-500" : "bg-muted-foreground/40"
-                }`}
-              />
-              {apiAvailable ? "API" : "Local"}
-            </span>
-          )}
-
           {/* Sidebar tab toggles */}
           <Button
             variant="ghost"
@@ -119,6 +122,16 @@ export function CalendarApp() {
           <Button
             variant="ghost"
             size="icon"
+            className="size-7 bg-brand/10 text-brand hover:bg-brand/20"
+            onClick={() => navigate("/admin")}
+            aria-label="Admin settings"
+          >
+            <Settings className="size-4" />
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
             className="size-7 text-muted-foreground hover:text-foreground"
             onClick={() => setSidebarOpen((prev) => !prev)}
             aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
@@ -142,6 +155,7 @@ export function CalendarApp() {
             onSelectDate={handleSelectDate}
             onMonthChange={setDisplayMonth}
             events={events}
+            weekStart={weekStart}
           />
         </main>
 

@@ -3,24 +3,14 @@ import type { CalendarEvent, TodoItem } from "@/lib/calendar-store"
 import { formatDateKey, generateId } from "@/lib/calendar-store"
 import { eventsApi, todosApi } from "@/lib/api"
 
-// ─── Seed data (used when API is unavailable) ───────────────────
+// ─── Seed data (used only when API is unavailable and no prior data exists) ───────────────────
 
 function seedEvents(): CalendarEvent[] {
-  const today = formatDateKey(new Date())
-  return [
-    { id: "1", title: "Team standup", date: today, time: "09:00", endTime: "09:30" },
-    { id: "2", title: "Design review", date: today, time: "14:00", endTime: "15:00" },
-    { id: "3", title: "Lunch with Sarah", date: today, time: "12:00", endTime: "13:00" },
-  ]
+  return []
 }
 
 function seedTodos(): TodoItem[] {
-  const today = formatDateKey(new Date())
-  return [
-    { id: "t1", text: "Review pull requests", completed: false, date: today },
-    { id: "t2", text: "Update project docs", completed: false, date: today },
-    { id: "t3", text: "Send weekly report", completed: true, date: today },
-  ]
+  return []
 }
 
 // ─── Hook ───────────────────────────────────────────────────────

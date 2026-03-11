@@ -4,6 +4,7 @@
   display: grid;
   place-items: center;
   padding: 24px;
+  background: var(--background);
 }
 
 .auth-card {
@@ -48,13 +49,17 @@
   color: var(--foreground);
 }
 
+.auth-input::placeholder {
+  color: var(--muted-foreground);
+}
+
 .auth-button {
   margin-top: 4px;
   padding: 10px 12px;
   border-radius: calc(var(--radius) - 2px);
-  border: 1px solid var(--border);
-  background: var(--primary);
-  color: var(--primary-foreground);
+  border: 1px solid var(--brand);
+  background: var(--brand);
+  color: var(--brand-foreground);
   font-weight: 700;
   cursor: pointer;
 }
