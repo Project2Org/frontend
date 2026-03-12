@@ -6,6 +6,16 @@ import { AuthProvider } from "./auth/AuthProvider";
 import "./index.css";
 import "./App.css";
 
+// Initialize theme from localStorage
+const savedTheme = localStorage.getItem("theme");
+if (savedTheme === "dark") {
+  document.documentElement.classList.add("dark");
+} else if (savedTheme !== "light") {
+  // Default to light mode if no preference is saved
+  document.documentElement.classList.remove("dark");
+  localStorage.setItem("theme", "light");
+}
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <BrowserRouter>

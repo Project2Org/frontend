@@ -16,7 +16,8 @@ import { Button } from "@/components/ui/button"
 import type { CalendarEvent } from "@/lib/calendar-store"
 import { formatDateKey } from "@/lib/calendar-store"
 
-const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+const WEEKDAYS_DEFAULT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+const WEEKDAYS_MONDAY = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
 interface CalendarPanelProps {
   selectedDate: Date
@@ -24,6 +25,7 @@ interface CalendarPanelProps {
   onSelectDate: (date: Date) => void
   onMonthChange: (date: Date) => void
   events: CalendarEvent[]
+  weekStart?: "sunday" | "monday"
 }
 
 export function CalendarPanel({
@@ -32,13 +34,16 @@ export function CalendarPanel({
   onSelectDate,
   onMonthChange,
   events,
+  weekStart = "sunday",
 }: CalendarPanelProps) {
   const monthStart = startOfMonth(displayMonth)
   const monthEnd = endOfMonth(displayMonth)
-  const gridStart = startOfWeek(monthStart)
-  const gridEnd = endOfWeek(monthEnd)
+  const weekStartsOnMonday = weekStart === "monday"
+  const gridStart = startOfWeek(monthStart, { weekStartsOnMonday })
+  const gridEnd = endOfWeek(monthEnd, { weekStartsOnMonday })
   const days = eachDayOfInterval({ start: gridStart, end: gridEnd })
   const numWeeks = Math.ceil(days.length / 7)
+  const weekdayLabels = weekStartsOnMonday ? WEEKDAYS_MONDAY : WEEKDAYS_DEFAULT
 
   const eventDates = new Set(events.map((e) => e.date))
 
@@ -88,7 +93,7 @@ export function CalendarPanel({
 
       {/* Weekday headers */}
       <div className="grid shrink-0 grid-cols-7 border-b border-border">
-        {WEEKDAYS.map((day) => (
+        {weekdayLabels.map((day) => (
           <div
             key={day}
             className="px-1.5 py-1 text-center text-[11px] font-medium text-muted-foreground"
