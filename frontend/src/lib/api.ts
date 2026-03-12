@@ -2,16 +2,22 @@ import type { CalendarEvent, TodoItem } from "@/lib/calendar-store"
 import { supabase } from "@/lib/supabaseClient"
 
 // ─── Spring Boot API base URL ───────────────────────────────────
-// Point this at your running Spring Boot server.
-// In production, create a .env file with VITE_API_URL=http://your-server/api
 const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080/api"
 
-// ─── Generic helpers ────────────────────────────────────────────
+// ─── Backend shapes ─────────────────────────────────────────────
+// Spring/JPA returns numeric IDs — we normalise to string to match
+// the frontend CalendarEvent / TodoItem types.
 
-async function request<T>(
-  path: string,
-  options?: RequestInit,
-): Promise<T> {
+interface BackendTodo {
+  id: number
+  text: string
+  completed: boolean
+  date: string
+}
+
+// ─── Generic request helper ─────────────────────────────────────
+
+async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const { data } = await supabase.auth.getSession()
   const token = data.session?.access_token
 
@@ -34,70 +40,66 @@ async function request<T>(
   return res.json() as Promise<T>
 }
 
-// ─── Events API ─────────────────────────────────────────────────
-// Maps to Spring Boot @RestController:
-//   GET    /api/events?date=2026-02-25
-//   GET    /api/events
-//   POST   /api/events         { title, date, time, endTime }
-//   DELETE /api/events/{id}
+// ─── Normaliser ──────────────────────────────────────────────────
 
-export const eventsApi = {
-  getAll(): Promise<CalendarEvent[]> {
-    return request<CalendarEvent[]>("/events")
-  },
-
-  getByDate(date: string): Promise<CalendarEvent[]> {
-    return request<CalendarEvent[]>(`/events?date=${encodeURIComponent(date)}`)
-  },
-
-  create(event: Omit<CalendarEvent, "id">): Promise<CalendarEvent> {
-    return request<CalendarEvent>("/events", {
-      method: "POST",
-      body: JSON.stringify(event),
-    })
-  },
-
-  delete(id: string): Promise<void> {
-    return request<void>(`/events/${encodeURIComponent(id)}`, {
-      method: "DELETE",
-    })
-  },
+function normaliseTodo(t: BackendTodo): TodoItem {
+  return {
+    id: String(t.id),
+    text: t.text,
+    completed: t.completed,
+    date: t.date,
+  }
 }
 
-// ─── Todos API ──────────────────────────────────────────────────
-// Maps to Spring Boot @RestController:
-//   GET    /api/todos?date=2026-02-25
-//   GET    /api/todos
-//   POST   /api/todos           { text, completed, date }
-//   PATCH  /api/todos/{id}      { completed }
-//   DELETE /api/todos/{id}
+// ─── Todos API ───────────────────────────────────────────────────
 
 export const todosApi = {
-  getAll(): Promise<TodoItem[]> {
-    return request<TodoItem[]>("/todos")
+  async getAll(): Promise<TodoItem[]> {
+    const raw = await request<BackendTodo[]>("/todos")
+    return raw.map(normaliseTodo)
   },
 
-  getByDate(date: string): Promise<TodoItem[]> {
-    return request<TodoItem[]>(`/todos?date=${encodeURIComponent(date)}`)
+  async getByDate(date: string): Promise<TodoItem[]> {
+    const raw = await request<BackendTodo[]>(`/todos?date=${encodeURIComponent(date)}`)
+    return raw.map(normaliseTodo)
   },
 
-  create(todo: Omit<TodoItem, "id">): Promise<TodoItem> {
-    return request<TodoItem>("/todos", {
+  async create(todo: Omit<TodoItem, "id">): Promise<TodoItem> {
+    const raw = await request<BackendTodo>("/todos", {
       method: "POST",
       body: JSON.stringify(todo),
     })
+    return normaliseTodo(raw)
   },
 
-  update(id: string, data: Partial<TodoItem>): Promise<TodoItem> {
-    return request<TodoItem>(`/todos/${encodeURIComponent(id)}`, {
+  async update(id: string, data: Partial<Pick<TodoItem, "completed" | "text">>): Promise<TodoItem> {
+    const raw = await request<BackendTodo>(`/todos/${encodeURIComponent(id)}`, {
       method: "PATCH",
       body: JSON.stringify(data),
     })
+    return normaliseTodo(raw)
   },
 
   delete(id: string): Promise<void> {
-    return request<void>(`/todos/${encodeURIComponent(id)}`, {
-      method: "DELETE",
-    })
+    return request<void>(`/todos/${encodeURIComponent(id)}`, { method: "DELETE" })
+  },
+}
+
+// ─── Events API (local-only until EventController is added) ──────
+// Intentionally rejects so useCalendarData keeps events in local state.
+// When you add an EventController, replace these stubs with request() calls.
+
+export const eventsApi = {
+  getAll(): Promise<CalendarEvent[]> {
+    return Promise.reject(new Error("Events API not implemented"))
+  },
+  getByDate(_date: string): Promise<CalendarEvent[]> {
+    return Promise.reject(new Error("Events API not implemented"))
+  },
+  create(_event: Omit<CalendarEvent, "id">): Promise<CalendarEvent> {
+    return Promise.reject(new Error("Events API not implemented"))
+  },
+  delete(_id: string): Promise<void> {
+    return Promise.reject(new Error("Events API not implemented"))
   },
 }
