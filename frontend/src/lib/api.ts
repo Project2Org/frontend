@@ -15,6 +15,16 @@ interface BackendTodo {
   date: string
 }
 
+interface BackendEvent {
+  id: number
+  title: string
+  date: string
+  time?: string
+  endTime?: string
+  description?: string
+  location?: string
+}
+
 // ─── Generic request helper ─────────────────────────────────────
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
@@ -48,6 +58,16 @@ function normaliseTodo(t: BackendTodo): TodoItem {
     text: t.text,
     completed: t.completed,
     date: t.date,
+  }
+}
+
+function normaliseEvent(e: BackendEvent): CalendarEvent {
+  return {
+    id: String(e.id),
+    title: e.title,
+    date: e.date,
+    time: e.time,
+    endTime: e.endTime,
   }
 }
 
@@ -85,21 +105,33 @@ export const todosApi = {
   },
 }
 
-// ─── Events API (local-only until EventController is added) ──────
-// Intentionally rejects so useCalendarData keeps events in local state.
-// When you add an EventController, replace these stubs with request() calls.
-
+// ─── Events API ──────────────────────────────────────────────────
+ 
 export const eventsApi = {
-  getAll(): Promise<CalendarEvent[]> {
-    return Promise.reject(new Error("Events API not implemented"))
+  async getAll(): Promise<CalendarEvent[]> {
+    const raw = await request<BackendEvent[]>("/events")
+    return raw.map(normaliseEvent)
   },
-  getByDate(_date: string): Promise<CalendarEvent[]> {
-    return Promise.reject(new Error("Events API not implemented"))
+ 
+  async getByDate(date: string): Promise<CalendarEvent[]> {
+    const raw = await request<BackendEvent[]>(`/events?date=${encodeURIComponent(date)}`)
+    return raw.map(normaliseEvent)
   },
-  create(_event: Omit<CalendarEvent, "id">): Promise<CalendarEvent> {
-    return Promise.reject(new Error("Events API not implemented"))
+ 
+  async create(event: Omit<CalendarEvent, "id">): Promise<CalendarEvent> {
+    const raw = await request<BackendEvent>("/events", {
+      method: "POST",
+      body: JSON.stringify({
+        title: event.title,
+        date: event.date,
+        time: event.time ?? null,
+        endTime: event.endTime ?? null,
+      }),
+    })
+    return normaliseEvent(raw)
   },
-  delete(_id: string): Promise<void> {
-    return Promise.reject(new Error("Events API not implemented"))
+ 
+  delete(id: string): Promise<void> {
+    return request<void>(`/events/${encodeURIComponent(id)}`, { method: "DELETE" })
   },
 }
