@@ -5,8 +5,6 @@ import { supabase } from "@/lib/supabaseClient"
 const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080/api"
 
 // ─── Backend shapes ─────────────────────────────────────────────
-// Spring/JPA returns numeric IDs — we normalise to string to match
-// the frontend CalendarEvent / TodoItem types.
 
 interface BackendTodo {
   id: number
@@ -50,7 +48,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return res.json() as Promise<T>
 }
 
-// ─── Normaliser ──────────────────────────────────────────────────
+// ─── Normalisers ─────────────────────────────────────────────────
 
 function normaliseTodo(t: BackendTodo): TodoItem {
   return {
@@ -68,6 +66,8 @@ function normaliseEvent(e: BackendEvent): CalendarEvent {
     date: e.date,
     time: e.time,
     endTime: e.endTime,
+    description: e.description,
+    location: e.location,
   }
 }
 
@@ -106,18 +106,18 @@ export const todosApi = {
 }
 
 // ─── Events API ──────────────────────────────────────────────────
- 
+
 export const eventsApi = {
   async getAll(): Promise<CalendarEvent[]> {
     const raw = await request<BackendEvent[]>("/events")
     return raw.map(normaliseEvent)
   },
- 
+
   async getByDate(date: string): Promise<CalendarEvent[]> {
     const raw = await request<BackendEvent[]>(`/events?date=${encodeURIComponent(date)}`)
     return raw.map(normaliseEvent)
   },
- 
+
   async create(event: Omit<CalendarEvent, "id">): Promise<CalendarEvent> {
     const raw = await request<BackendEvent>("/events", {
       method: "POST",
@@ -126,11 +126,13 @@ export const eventsApi = {
         date: event.date,
         time: event.time ?? null,
         endTime: event.endTime ?? null,
+        description: event.description ?? null,
+        location: event.location ?? null,
       }),
     })
     return normaliseEvent(raw)
   },
- 
+
   delete(id: string): Promise<void> {
     return request<void>(`/events/${encodeURIComponent(id)}`, { method: "DELETE" })
   },
