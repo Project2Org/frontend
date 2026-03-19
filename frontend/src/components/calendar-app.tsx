@@ -9,7 +9,7 @@ import { useCalendarData } from "@/hooks/use-calendar-data"
 import { formatDateKey } from "@/lib/calendar-store"
 import { Button } from "@/components/ui/button"
 
-type SidebarTab = "events" | "todos"  
+type SidebarTab = "events" | "todos"
 
 export function CalendarApp() {
   const navigate = useNavigate()
@@ -24,6 +24,7 @@ export function CalendarApp() {
   const {
     events,
     todos,
+    todosLoading,
     addEvent,
     deleteEvent,
     addTodo,
@@ -37,7 +38,6 @@ export function CalendarApp() {
       const event = e as CustomEvent<"monday" | "sunday">
       setWeekStart(event.detail)
     }
-
     window.addEventListener("weekStartChanged", handleWeekStartChange)
     return () => window.removeEventListener("weekStartChanged", handleWeekStartChange)
   }, [])
@@ -51,8 +51,13 @@ export function CalendarApp() {
   }, [])
 
   const handleAddTodo = useCallback(
-    (text: string) => addTodo(text, dateKey),
+    (text: string, onError?: () => void) => addTodo(text, dateKey, onError),
     [addTodo, dateKey],
+  )
+
+  const handleDeleteTodo = useCallback(
+    (id: string, onError?: () => void) => deleteTodo(id, onError),
+    [deleteTodo],
   )
 
   return (
@@ -64,17 +69,16 @@ export function CalendarApp() {
           <div className="flex items-center justify-center rounded-md bg-brand p-1">
             <CalendarDays className="size-3.5 text-brand-foreground" />
           </div>
-          <h1 className="text-sm font-semibold tracking-tight text-foreground">Project 2 Calender App</h1>
+          <h1 className="text-sm font-semibold tracking-tight text-foreground">Project 2 Calendar App</h1>
         </div>
 
-        {/* Center: selected date info */}
+        {/* Center: selected date */}
         <p className="text-xs text-muted-foreground">
           {format(selectedDate, "EEEE, MMMM d, yyyy")}
         </p>
 
         {/* Right: sidebar tabs + toggle */}
         <div className="flex items-center gap-1">
-          {/* Sidebar tab toggles */}
           <Button
             variant="ghost"
             size="sm"
@@ -145,9 +149,8 @@ export function CalendarApp() {
         </div>
       </header>
 
-      {/* Body: Calendar grid + optional sidebar */}
+      {/* Body */}
       <div className="flex min-h-0 flex-1">
-        {/* Main calendar grid */}
         <main className="min-h-0 min-w-0 flex-1">
           <CalendarPanel
             selectedDate={selectedDate}
@@ -159,7 +162,6 @@ export function CalendarApp() {
           />
         </main>
 
-        {/* Right sidebar */}
         <aside
           className={`shrink-0 border-l border-border transition-all duration-300 ease-in-out overflow-hidden ${
             sidebarOpen ? "w-80" : "w-0 border-l-0"
@@ -176,9 +178,10 @@ export function CalendarApp() {
             ) : (
               <TodoPanel
                 todos={dayTodos}
+                loading={todosLoading}
                 onAddTodo={handleAddTodo}
                 onToggleTodo={toggleTodo}
-                onDeleteTodo={deleteTodo}
+                onDeleteTodo={handleDeleteTodo}
               />
             )}
           </div>

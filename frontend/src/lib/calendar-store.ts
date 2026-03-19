@@ -4,6 +4,8 @@ export interface CalendarEvent {
   date: string // ISO date string YYYY-MM-DD
   time?: string // e.g. "09:00"
   endTime?: string // e.g. "10:00"
+  description?: string
+  location?: string
   color?: string
 }
 

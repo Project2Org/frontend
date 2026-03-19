@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { format } from "date-fns"
-import { Plus, Clock, Trash2 } from "lucide-react"
+import { Plus, Clock, Trash2, MapPin, AlignLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -31,6 +31,8 @@ export function EventsPanel({
   const [title, setTitle] = useState("")
   const [time, setTime] = useState("09:00")
   const [endTime, setEndTime] = useState("10:00")
+  const [description, setDescription] = useState("")
+  const [location, setLocation] = useState("")
 
   const handleAddEvent = () => {
     if (!title.trim()) return
@@ -39,10 +41,14 @@ export function EventsPanel({
       date: formatDateKey(selectedDate),
       time,
       endTime,
+      description: description.trim() || undefined,
+      location: location.trim() || undefined,
     })
     setTitle("")
     setTime("09:00")
     setEndTime("10:00")
+    setDescription("")
+    setLocation("")
     setDialogOpen(false)
   }
 
@@ -77,9 +83,11 @@ export function EventsPanel({
               <DialogTitle>New Event</DialogTitle>
             </DialogHeader>
             <div className="flex flex-col gap-4 py-2">
+
+              {/* Title */}
               <div>
                 <label htmlFor="event-title" className="mb-1.5 block text-sm font-medium text-foreground">
-                  Title
+                  Title <span className="text-destructive">*</span>
                 </label>
                 <Input
                   id="event-title"
@@ -90,6 +98,8 @@ export function EventsPanel({
                   onKeyDown={(e) => { if (e.key === "Enter") handleAddEvent() }}
                 />
               </div>
+
+              {/* Start / End time */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="event-start" className="mb-1.5 block text-sm font-medium text-foreground">
@@ -116,6 +126,36 @@ export function EventsPanel({
                   />
                 </div>
               </div>
+
+              {/* Location */}
+              <div>
+                <label htmlFor="event-location" className="mb-1.5 block text-sm font-medium text-foreground">
+                  Location
+                </label>
+                <Input
+                  id="event-location"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="Add a location"
+                  className="bg-background"
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label htmlFor="event-description" className="mb-1.5 block text-sm font-medium text-foreground">
+                  Description
+                </label>
+                <textarea
+                  id="event-description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Add a description"
+                  rows={3}
+                  className="w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                />
+              </div>
+
             </div>
             <DialogFooter>
               <Button
@@ -156,6 +196,18 @@ export function EventsPanel({
                     <p className="mt-0.5 text-[11px] text-muted-foreground">
                       {formatTime(event.time)}
                       {event.endTime && ` — ${formatTime(event.endTime)}`}
+                    </p>
+                  )}
+                  {event.location && (
+                    <p className="mt-0.5 flex items-center gap-1 text-[11px] text-muted-foreground">
+                      <MapPin className="size-2.5 shrink-0" />
+                      {event.location}
+                    </p>
+                  )}
+                  {event.description && (
+                    <p className="mt-0.5 flex items-start gap-1 text-[11px] text-muted-foreground">
+                      <AlignLeft className="mt-px size-2.5 shrink-0" />
+                      <span className="line-clamp-2">{event.description}</span>
                     </p>
                   )}
                 </div>
