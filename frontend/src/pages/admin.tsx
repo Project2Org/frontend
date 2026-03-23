@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import {useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Settings, Sun, Moon, LogOut, Trash2, Calendar } from "lucide-react"
 import { useAuth } from "@/auth/AuthProvider"
