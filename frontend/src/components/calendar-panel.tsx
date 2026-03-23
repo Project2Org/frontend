@@ -38,9 +38,9 @@ export function CalendarPanel({
 }: CalendarPanelProps) {
   const monthStart = startOfMonth(displayMonth)
   const monthEnd = endOfMonth(displayMonth)
-  const weekStartsOnMonday = weekStart === "monday"
-  const gridStart = startOfWeek(monthStart, { weekStartsOnMonday })
-  const gridEnd = endOfWeek(monthEnd, { weekStartsOnMonday })
+  const weekStartsOn = weekStart === "monday" ? 1 : 0
+  const gridStart = startOfWeek(monthStart, { weekStartsOn })
+  const gridEnd = endOfWeek(monthEnd, { weekStartsOn })
   const days = eachDayOfInterval({ start: gridStart, end: gridEnd })
   const numWeeks = Math.ceil(days.length / 7)
   const weekdayLabels = weekStartsOnMonday ? WEEKDAYS_MONDAY : WEEKDAYS_DEFAULT
